@@ -1,2 +1,2 @@
 # sclblonnx
-Scailable ONNX python tools
+The `sclblonnx` package contains utility functions to deal with ONNX graphs.
