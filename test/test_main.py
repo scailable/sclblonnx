@@ -3,15 +3,14 @@ import onnx
 import pytest
 
 from sclblonnx.errors import SclblONNXError
-from sclblonnx.main import display, graph_from_file, graph_to_file, check
+from sclblonnx.main import display, graph_from_file, graph_to_file, check, optimize_graph
 
 
 # Test graph from file:
 def test_graph_from_file():
     # Test non-existing file
-    with pytest.raises(SclblONNXError) as excinfo:
-        graph_from_file('nan.xx')
-    assert "A problem occurred" in str(excinfo.value)
+    g = graph_from_file('not_existing.onnx')
+    assert not g, "This should be false"
     # Test existing file
     g = graph_from_file("files/example01.onnx")
     assert type(g) is onnx.onnx_ml_pb2.GraphProto
@@ -36,25 +35,33 @@ def test_check():
     dir = "files"
     for fname in os.listdir(dir):
         if fname.endswith(".onnx"):
+            print(fname)
             fpath = dir + "/" + fname
             g = graph_from_file(fpath)
-            check(g)
-
+            check(g, False)
 
 
 # Functional test off all bits of the package:
 def test_functional():
     # Open an existing graph:
-    g = graph_from_file("files/example01.onnx")
+    g = graph_from_file("files/example07.onnx")
 
     # Display the graph:
-    # display(g)
+    display(g)
+
+    # Clean up:
+    g = optimize_graph(g, _optimize=True, _simplify=True, _check=False)
+    display(g)
+
 
     # Check the graph:
-    check(g)
+    #check(g)
     #print(g)
 
-
+#test_graph_from_file()
 #test_graph_to_file()
 #test_functional()
-test_check()
+#test_check()
+
+g = graph_from_file("files/example06.onnx")
+check(g, False)
