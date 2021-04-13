@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 
+import numpy as np
 import onnxoptimizer
 from onnx import ModelProto as xmp
 from onnx import __version__ as xversion
@@ -12,13 +13,60 @@ from packaging import version
 from onnxsim import simplify
 import sclblonnx._globals as glob
 from sclblonnx.errors import SclblONNXError
-# from onnx import TensorProto as xtp  # TP
+from onnx import TensorProto as xtp  # TP
+import onnxruntime as xrt
+
 # from onnx import xchecker
-# import onnxruntime as xrt
+
 # import onnxoptimizer
 
 
 # graph_from_file
+
+
+# todo(McK): Clean up.
+
+
+def empty_graph():
+    g = xpb2.GraphProto(name = "sclblgraph")
+    return (g)
+
+
+def add_node(g, node):
+    print("add")
+
+
+def add_input(g, name, dtype, dim):
+    if dtype == "float":
+        data_type = xtp.FLOAT
+    g.input.append(xhelp.make_tensor_value_info(name, data_type, dim))
+    return (g)
+
+
+def add_output(g, name, dtype, dim):
+    if dtype == "float":
+        data_type = xtp.FLOAT
+    g.output.append(xhelp.make_tensor_value_info(name, data_type, dim))
+    return (g)
+
+
+def run(g, inputs):
+
+    graph_to_file(g, ".temp.onnx")
+
+    val1 = np.array([1.2])  # Todo parse and get type
+    val2 = np.array([2.5])
+
+    sess = xrt.InferenceSession('.temp.onnx')
+    out = sess.run(["sum"], {"x1":val1.astype(np.float32), "x2":val2.astype(np.float32)})[0]
+    return out
+
+
+def new_node(type, inputs, outputs, name):
+    n = xhelp.make_node(type, inputs, outputs, name)
+    return (n)
+
+
 def graph_from_file(fname):
     """ Retrieve a graph object from an onnx file
 
@@ -90,8 +138,11 @@ def graph_to_file(g, fname, _producer="sclblonnx", _optimize=True, _simplify=Tru
     return True
 
 
-# optimize_graph
-def optimize_graph(g, _producer="sclblonnx", _optimize=True, _simplify=True, _check=True):
+# model_to_graph
+
+
+# clean
+def clean(g, _producer="sclblonnx", _optimize=True, _simplify=True, _check=True):
     """ optimize_graph optimizes an ONNX graph using onnx tooling
 
         This method is a simple wrapper around graph_to_model but returns the resulting graph.
@@ -253,7 +304,7 @@ def check(g, _optimize=True):
 
     # optimize the graph
     if _optimize:
-        g = optimize_graph(g)
+        g = clean(g)
         if not g:
             print("Optimization failed, halting check.")
             return False
@@ -320,9 +371,9 @@ def check(g, _optimize=True):
         if op not in glob.ONNX_VERSION_INFO['operators']:
             not_supported.append(op)
 
-        #print(dir(n))
-        #att = n.attribute
-        #for at in att:
+        # print(dir(n))
+        # att = n.attribute
+        # for at in att:
         #    t = getattr(at, "t", None)
         #    print(at)
         #    dt = getattr(t, "data_type", None)
@@ -353,8 +404,8 @@ def constant_node(
         data_type: Data type of the node
     """
     return xhelp.make_node('Constant', inputs=[], outputs=[name], name=name + "-node",
-           value=xhelp.make_tensor(name=name + "-value", data_type=data_type,
-           dims=val.shape, vals=val.flatten()))
+                           value=xhelp.make_tensor(name=name + "-value", data_type=data_type,
+                                                   dims=val.shape, vals=val.flatten()))
 
 
 # run evaluates a graph with a given list of inputs

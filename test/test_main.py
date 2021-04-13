@@ -3,7 +3,7 @@ import onnx
 import pytest
 
 from sclblonnx.errors import SclblONNXError
-from sclblonnx.main import display, graph_from_file, graph_to_file, check, optimize_graph
+from sclblonnx.main import display, graph_from_file, graph_to_file, check, clean
 
 
 # Test graph from file:
@@ -50,7 +50,7 @@ def test_functional():
     display(g)
 
     # Clean up:
-    g = optimize_graph(g, _optimize=True, _simplify=True, _check=False)
+    g = clean(g, _optimize=True, _simplify=True, _check=False)
     display(g)
 
 
@@ -63,5 +63,5 @@ def test_functional():
 #test_functional()
 #test_check()
 
-g = graph_from_file("files/example06.onnx")
-check(g, False)
+g = graph_from_file("files/example01.onnx")
+display(g)
