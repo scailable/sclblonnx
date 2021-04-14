@@ -12,7 +12,7 @@ def test_graph_from_file():
     g = graph_from_file('not_existing.onnx')
     assert not g, "This should be false"
     # Test existing file
-    g = graph_from_file("files/example01.onnx")
+    g = graph_from_file("source/example01.onnx")
     assert type(g) is onnx.onnx_ml_pb2.GraphProto
 
 
@@ -23,14 +23,14 @@ def test_graph_to_file():
         graph_to_file({}, 'name.onnx')
     assert "valid ONNX graph" in str(excinfo.value)
     # Test existing file
-    g = graph_from_file("files/example01.onnx")
+    g = graph_from_file("source/example01.onnx")
     result = graph_to_file(g, '_tmp.onnx')
     assert result is True
     # Remove the file
     os.remove("_tmp.onnx")
 
 
-# Test alle examples in test/files
+# Test alle examples in test/source
 def test_check():
     dir = "files"
     for fname in os.listdir(dir):
@@ -44,7 +44,7 @@ def test_check():
 # Functional test off all bits of the package:
 def test_functional():
     # Open an existing graph:
-    g = graph_from_file("files/example07.onnx")
+    g = graph_from_file("source/example07.onnx")
 
     # Display the graph:
     display(g)
@@ -63,5 +63,5 @@ def test_functional():
 #test_functional()
 #test_check()
 
-g = graph_from_file("files/example01.onnx")
+g = graph_from_file("source/example01.onnx")
 display(g)

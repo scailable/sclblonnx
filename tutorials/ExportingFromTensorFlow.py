@@ -1,25 +1,50 @@
-# #import tensorflow as tf
 # import keras2onnx
-# from tensorflow.keras import layers
+# import numpy as np
+# from sklearn import datasets
+# import tensorflow as tf
 #
-# # Generate data for model training
-# dataset = df = np.row_stack([i.T for i in test_data])
-# X = dataset[:, [0, 2]]  # Height and feed vectors
-# y = dataset[:, [1]]  # Time vector
 #
-# dnn_model = tf.keras.Sequential()
-# dnn_model.add(layers.Dense(64, activation='relu'))
-# dnn_model.add(layers.Dense(64, activation='relu'))
-# dnn_model.add(layers.Dense(1))
+# # Get data from sklearn Example:
+# X, y = datasets.load_diabetes(return_X_y=True)
+# print(X.shape)
 #
-# dnn_model.compile(loss='mean_absolute_error', optimizer=tf.keras.optimizers.SGD())
 #
-# # train the model
-# history = dnn_model.fit(
-#     X, y,
-#     validation_split=0.2,
-#     verbose=0, epochs=300)
+# # Setup a DNN using TF
+# # tf.compat.v1.disable_eager_execution()
+# tf.compat.v1.disable_v2_behavior()
+# #
+# # dnn_model = tf.keras.Sequential()
+# # dnn_model.add(layers.Dense(64, activation='relu'))
+# # dnn_model.add(layers.Dense(64, activation='relu'))
+# # dnn_model.add(layers.Dense(1))
+# # dnn_model.compile(loss='mse', optimizer='sgd')
+# # # train the model
+# # history = model.fit( X, y,validation_split=0.2,verbose=0, epochs=1)
+#
+# model = tf.keras.Sequential([
+#     tf.keras.layers.Dense(32, activation=tf.nn.relu, input_shape=[10]),
+#     tf.keras.layers.Dense(32, activation=tf.nn.relu),
+#     tf.keras.layers.Dense(32, activation=tf.nn.relu),
+#     tf.keras.layers.Dense(1)
+#   ])
+#
+# optimizer = tf.keras.optimizers.RMSprop(0.0099)
+# model.compile(loss='mean_squared_error', optimizer=optimizer)
+# model.fit(X, y, epochs=10)
+#
+# yhat = model.predict(X)  # generate predictions locally
+# print(yhat)
+#
+#
 #
 # # save model
-# onnx_model = keras2onnx.convert_keras(dnn_model, dnn_model.name)
-# keras2onnx.save_model(onnx_model,  'dnn.onnx')
+# # tf.saved_model.save(dnn_model, "tmp_model")
+# mod = keras2onnx.convert_keras(model, model.name, target_opset=13)
+# #keras2onnx.save_model(mod,  "onnx/dnn-tf.onnx")
+
+# load the model using sclblonnx
+import sclblonnx as so
+g = so.graph_from_file("onnx/dnn-sklearn-test.onnx")
+so.display(g)
+g = so.clean(g)
+so.check(g)
