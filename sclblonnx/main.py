@@ -80,12 +80,10 @@ def add_node(
         The extended graph.
     """
     if type(graph) is not xpb2.GraphProto:
-        if not glob.SILENT:
-            print("graph is not a valid ONNX graph.")
+        print("graph is not a valid ONNX graph.")
         return False
     if type(node) is not xpb2.NodeProto:
-        if not glob.SILENT:
-            print("node is not a valid ONNX node.")
+        print("node is not a valid ONNX node.")
         return False
     try:
         graph.node.append(node, **kwargs)
@@ -111,8 +109,7 @@ def add_nodes(
         The extended graph.
     """
     if type(graph) is not xpb2.GraphProto:
-        if not glob.SILENT:
-            print("graph is not a valid ONNX graph.")
+        print("graph is not a valid ONNX graph.")
         return False
 
     for node in nodes:
@@ -141,8 +138,7 @@ def add_input(
 
     """
     if type(graph) is not xpb2.GraphProto:
-        if not glob.SILENT:
-            print("g is not a valid ONNX graph.")
+        print("graph is not a valid ONNX graph.")
         return False
 
     dtype = _data_type(data_type)
@@ -154,6 +150,288 @@ def add_input(
     except Exception as e:
         print("Unable to add the input: " + str(e))
         return False
+    return graph
+
+
+def list_inputs(graph: xpb2.GraphProto):
+    """ Tries to list the outputs of a given graph.
+
+    Args:
+        graph the ONNX graph
+    """
+    if type(graph) is not xpb2.GraphProto:
+        print("graph is not a valid ONNX graph.")
+        return False
+
+    i = 1
+    for elem in graph.input:
+        name, dtype, shape = _parse_element(elem)
+        print("Input {}: Name: '{}', Type: {}, Dimension: {}".format(i, name, dtype, shape))
+        i += 1
+
+    return True
+
+
+def rename_input(graph, current_name, new_name):
+    # We have to rename the input itself:
+    found = False
+    for input in graph.input:
+        if input.name == current_name:
+            input.name = new_name
+            found = True
+    if not found:
+        print("err")
+        return False
+
+    # And rename it in every nodes that takes this as input:
+    for node in graph.node:
+        for index, name in enumerate(node.input):
+            if name == current_name:
+                node.input[index] = new_name
+
+    return graph
+
+
+def replace_input(
+        graph: xpb2.GraphProto,
+        name: str,
+        data_type: str,
+        dimensions: [],
+        **kwargs):
+    """ Changes an existing input in a graph
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        name: String, the name of the input as used to determine the graph topology.
+        data_type: String, the data type of the input. Run list_data_types() for an overview.
+        dimensions: List[] specifying the dimensions of the input.
+
+    Returns:
+        The extended graph.
+
+    """
+    if type(graph) is not xpb2.GraphProto:
+        print("graph is not a valid ONNX graph.")
+        return graph
+
+    # Remove the named input
+    found = False
+    try:
+        for elem in graph.input:
+            if elem.name == name:
+                graph.input.remove(elem)
+                found = True
+    except Exception as e:
+        print("Unable to iterate the inputs. " + str(e))
+        return False
+    if not found:
+        print("Unable to find the input by name.")
+
+    # Create the new value
+    try:
+        val = value(name, data_type, dimensions, **kwargs)
+    except Exception as e:
+        print("Unable to create value. " + str(e))
+        return False
+
+    # Add the value to the input
+    try:
+        graph.input.append(val, *kwargs)
+    except Exception as e:
+        print("Unable to add the input: " + str(e))
+        return False
+
+    return graph
+
+
+def delete_output(
+            graph: xpb2.GraphProto,
+            name: str,
+            **kwargs):
+    """ Removes an existing output of a graph by name
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        name: String, the name of the output as used to determine the graph topology.
+
+    Returns:
+        The extended graph.
+
+    """
+    if type(graph) is not xpb2.GraphProto:
+        return graph
+
+    # Remove the named output
+    found = False
+    try:
+        for elem in graph.output:
+            if elem.name == name:
+                graph.output.remove(elem)
+                found = True
+    except Exception as e:
+        print("Unable to iterate the outputs. " + str(e))
+        return False
+    if not found:
+        print("Unable to find the output by name.")
+        return False
+
+    return graph
+
+def list_outputs(graph: xpb2.GraphProto):
+    """ Tries to list the outputs of a given graph.
+
+    Args:
+        graph the ONNX graph
+    """
+    if type(graph) is not xpb2.GraphProto:
+        print("graph is not a valid ONNX graph.")
+        return False
+
+    i = 1
+    for elem in graph.output:
+        name, dtype, shape = _parse_element(elem)
+        print("Output {}: Name: '{}', Type: {}, Dimension: {}".format(i, name, dtype, shape))
+        i += 1
+
+    return True
+
+
+def _parse_element(elem):
+    """ Parse a graph input or output element and return a string.
+
+    Utility.
+
+    Args:
+        elem, a TypeProto.
+
+    Returns:
+        name The name of the element
+        data_type The data type of the element
+        shape_str The dimensions of the element
+    """
+    name = getattr(elem, 'name', "None")
+    data_type = "NA"
+    shape_str = "NA"
+    etype = getattr(elem, 'type', False)
+    if etype:
+        ttype = getattr(etype, 'tensor_type', False)
+        if ttype:
+            data_type = _data_string(getattr(ttype, 'elem_type', 0))
+            shape = getattr(elem.type.tensor_type, "shape", False)
+            if shape:
+                shape_str = "["
+                dims = getattr(shape, 'dim', [])
+                for dim in dims:
+                    vals = getattr(dim, 'dim_value', "?")
+                    shape_str += (str(vals) + ",")
+                shape_str = shape_str.rstrip(",")
+                shape_str += "]"
+    return name, data_type, shape_str
+
+
+def rename_output(graph, current_name, new_name):
+    # We have to rename the input itself:
+    found = False
+    for output in graph.output:
+        if output.name == current_name:
+            output.name = new_name
+            found = True
+    if not found:
+        print("err")
+        return False
+
+    # And rename it in every nodes that takes this as input:
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == current_name:
+                node.output[index] = new_name
+
+    return graph
+
+
+def replace_output(
+        graph: xpb2.GraphProto,
+        name: str,
+        data_type: str,
+        dimensions: [],
+        **kwargs):
+    """ Changes an existing output of a graph
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        name: String, the name of the output as used to determine the graph topology.
+        data_type: String, the data type of the output. Run list_data_types() for an overview.
+        dimensions: List[] specifying the dimensions of the input.
+
+    Returns:
+        The extended graph.
+
+    """
+    if type(graph) is not xpb2.GraphProto:
+        print("graph is not a valid ONNX graph.")
+        return graph
+
+    # Remove the named output
+    found = False
+    try:
+        for elem in graph.output:
+            if elem.name == name:
+                graph.output.remove(elem)
+                found = True
+    except Exception as e:
+        print("Unable to iterate the outputs. " + str(e))
+        return False
+    if not found:
+        print("Unable to find the output by name.")
+
+    # Create the new value
+    try:
+        val = value(name, data_type, dimensions, **kwargs)
+    except Exception as e:
+        print("Unable to create value. " + str(e))
+        return False
+
+    # Add the value to the output
+    try:
+        graph.output.append(val, *kwargs)
+    except Exception as e:
+        print("Unable to add the output: " + str(e))
+        return False
+
+    return graph
+
+
+def delete_input(
+            graph: xpb2.GraphProto,
+            name: str,
+            **kwargs):
+    """ Removes an existing input of a graph by name
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        name: String, the name of the input as used to determine the graph topology.
+
+    Returns:
+        The extended graph.
+
+    """
+    if type(graph) is not xpb2.GraphProto:
+        return graph
+
+    # Remove the named output
+    found = False
+    try:
+        for elem in graph.input:
+            if elem.name == name:
+                graph.input.remove(elem)
+                found = True
+    except Exception as e:
+        print("Unable to iterate the inputs. " + str(e))
+        return False
+    if not found:
+        print("Unable to find the input by name.")
+        return False
+
     return graph
 
 
@@ -176,8 +454,7 @@ def add_output(
 
     """
     if type(graph) is not xpb2.GraphProto:
-        if not glob.SILENT:
-            print("graph is not a valid ONNX graph.")
+        print("graph is not a valid ONNX graph.")
         return False
 
     dtype = _data_type(data_type)
@@ -211,8 +488,7 @@ def add_constant(
         The extended graph.
     """
     if type(graph) is not xpb2.GraphProto:
-        if not glob.SILENT:
-            print("graph is not a valid ONNX graph.")
+        print("graph is not a valid ONNX graph.")
         return False
 
     dtype = _data_type(data_type)
@@ -232,6 +508,46 @@ def add_constant(
         print("Unable to add constant node to graph.")
         return False
     return graph
+
+
+# Create a constant node and return it
+def constant(name: str,
+             value: np.array,
+             data_type: str,
+             **kwargs):
+    """ Create a constant node
+
+    Args:
+        name: Name of the (output value of the) constant node to determine the graph topology
+        value: Values of the node (as a np.array)
+        data_type: Data type of the node
+
+    Returns:
+        The extended graph.
+    """
+    dtype = _data_type(data_type)
+    if not dtype:
+        return False
+
+    try:
+        constant_node = xhelp.make_node('Constant', inputs=[], outputs=[name], name=name + "-constant",
+                                        value=xhelp.make_tensor(name=name + "-values", data_type=dtype,
+                                                                dims=value.shape, vals=value.flatten()), **kwargs)
+    except Exception as e:
+        print("Unable to create the constant node: " + str(e))
+        return False
+
+    return constant_node
+
+
+# Create a value description
+def value(name, data_type, dimensions):
+    dtype = _data_type(data_type)
+    if not dtype:
+        return False
+
+    val = xhelp.make_tensor_value_info(name, dtype, dimensions)
+    return val
 
 
 def run(
@@ -414,8 +730,7 @@ def check(
     """
     # Check if this is a valid graph:
     if type(graph) is not xpb2.GraphProto:
-        if not glob.SILENT:
-            print("g is not a valid ONNX graph.")
+        print("graph is not a valid ONNX graph.")
         return False
 
     # Standard ONNX checking:
@@ -494,6 +809,23 @@ def check(
 
     print("Your graph was successfully checked.")
     return True
+
+
+def input_str(inputs: {}):
+    """ input_str returns an example input for a Scailable runtime
+
+    The method takes a valid input object to an onnx graph (i.e., one used for the "inputs" argument
+    in the run() function, and returns and prints an example input to a Scailable runtime / REST endpoint
+
+    Args:
+        inputs The input object
+
+    Returns:
+        An example input, base64 formatted.
+    """
+    # todo(Robin): Fix input_str() function.
+    print("WARNING: input_str is not yet implemented.")
+    return "Not yet..."
 
 
 # display uses Netron to display a graph
@@ -594,6 +926,17 @@ def _data_type(data_type: str):
             return val
     print("Data type not found. Use `list_data_types()` to list all supported data types.")
     return False
+
+
+def _data_string(data_number: int):
+    """ convert the data type mumber to the appropriate string
+
+    See: https://deeplearning4j.org/api/latest/onnx/Onnx.TensorProto.DataType.html
+    """
+    for key, val in glob.DATA_TYPES.items():
+        if val == data_number:
+            return key
+    return "NaN"
 
 
 # No command line options for this script:

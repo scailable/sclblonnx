@@ -1,3 +1,5 @@
+import os
+
 import sclblonnx as so
 import numpy as np
 
@@ -13,12 +15,13 @@ g = so.empty_graph()
 
 # Add a node to the graph.
 # Please note the list of operators at the operator docs: https://github.com/onnx/onnx/blob/master/docs/Operators.md
+# and run so.list_data_types() to see all Scailable supported data types.
 n1 = so.node('Add', inputs=['x1', 'x2'], outputs=['sum'])
 g = so.add_node(g, n1)
 
 # We should explicitly specify the named inputs to the graph -- note that the names determine the graph topology.
 # Also, we should specify the data type and dimensions of any input.
-# Use so.list_data_types() to see availabe data types.
+# Use so.list_data_types() to see available data types.
 g = so.add_input(g, 'x1', "FLOAT", [1])
 g = so.add_input(g, 'x2', "FLOAT", [1])
 
@@ -48,12 +51,15 @@ result = so.run(g,
 print(result)
 
 # We can easily store the graph to the following path.
-so.graph_to_file(g, "onnx/manual_add.onnx")  # And yay, this one converts
+so.graph_to_file(g, "onnx/add-scalars.onnx")  # And yay, this one converts
 
-# And, subsequently upload it to Scailable using the sclblpy package:
+# And, subsequently upload it to Scailable using the sclblpy package,
+# See the sclblpy package docs for more details.
+# https://pypi.org/project/sclblpy/
 # sp.upload("onnx/manual_add.onnx", docs, etc.)
 
 # After conversion, it will appear in your dashboard, and you can test it.
 # so.edge_input(inputs) converts an example input to the input that can be used on the devide:
-# example_input = so.edge_input(example)
-# print(example_input)
+example_input = so.input_str(example)
+print(example_input)
+

@@ -20,13 +20,12 @@ The logic that we build is simple:
 If the threshold is reached, we conclude that the container is filled.
 """
 
-
 # Start with the empty graph:
 g = so.empty_graph()
 
 # Create the constant node encoding the empty image and add it to the graph:
 # Note the type encoding as np.int64.
-reference_image = np.array(Image.open("source/images/empty-average.JPG"), dtype=np.int32)
+reference_image = np.array(Image.open("images/empty-average.JPG"), dtype=np.int32)
 g = so.add_constant(g, "c1", reference_image, "INT32")
 
 # Add the first input (note, same shape):
@@ -47,15 +46,13 @@ g = so.add_constant(g, "c2", threshold, "INT32")
 n4 = so.node("Less", inputs=['sum', 'c2'], outputs=['result'])
 g = so.add_node(g, n4)
 
-# Check: says that there is no output (which is true...)
-print("Check 1:")
+# Check: says that there is no output defined (which is true...)
 so.check(g)
 
 # Add output:
 g = so.add_output(g, "result", "BOOL", [1])
 
 # After which is passes all the checks
-print("Check 2:")
 so.check(g)
 
 # Let's inspect:
@@ -65,13 +62,21 @@ so.display(g)
 g = so.clean(g)
 
 # Let's try it out for the first image:
-img_data = np.array(Image.open("source/images/2.JPG"), dtype=np.int32)
+img_data = np.array(Image.open("images/2.JPG"), dtype=np.int32)
 example = {"in": img_data.astype(np.int32)}
 result = so.run(g,
                 inputs=example,
                 outputs=['result'])
 
-print(result)
+# Print the result
+if result[0]:
+    print("The container is empty.")
+else:
+    print("The container is filled.")
 
-# Store
-so.graph_to_file(g, "onnx/image_recognition.onnx")
+# Example input for a Scailable runtime:
+input_example = so.input_str(example)
+print(input_example)
+
+# Store the graph
+so.graph_to_file(g, "onnx/check_container.onnx")
