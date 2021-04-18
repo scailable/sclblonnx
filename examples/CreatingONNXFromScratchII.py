@@ -75,7 +75,7 @@ else:
     print("The container is filled.")
 
 # Example input for a Scailable runtime:
-input_example = so.input_str(example)
+input_example = so.sclbl_input(example)
 print(input_example)
 
 # Store the graph

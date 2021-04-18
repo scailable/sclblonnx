@@ -60,6 +60,6 @@ so.graph_to_file(g, "onnx/add-scalars.onnx")  # And yay, this one converts
 
 # After conversion, it will appear in your dashboard, and you can test it.
 # so.edge_input(inputs) converts an example input to the input that can be used on the devide:
-example_input = so.input_str(example)
+example_input = so.sclbl_input(example)
 print(example_input)
 

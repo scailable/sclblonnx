@@ -2,7 +2,6 @@ import os
 import onnx
 import pytest
 
-from sclblonnx.errors import SclblONNXError
 from sclblonnx.main import display, graph_from_file, graph_to_file, check, clean
 
 

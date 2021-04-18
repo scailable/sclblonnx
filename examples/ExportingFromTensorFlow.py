@@ -84,7 +84,7 @@ print(result)
 
 
 # Or inspect the input for the Scailable runtime
-print(so.input_str(example))
+print(so.sclbl_input(example))
 
 
 # Finally, we can store the changed graph:

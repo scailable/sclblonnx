@@ -8,10 +8,50 @@ if sys.version_info < (3, 0):
     print('Sclblonnx requires Python 3, while Python ' + str(sys.version[0] + ' was detected. Terminating... '))
     sys.exit(1)
 
-from .main import display, graph_from_file, empty_graph, node, add_input, add_node, add_output, \
-    clean, run, graph_to_file, check, add_constant, add_nodes, list_data_types, constant, value, input_str, \
-    list_inputs, replace_input, replace_output, list_outputs, rename_input, rename_output, delete_output, \
-    delete_input
 from .version import __version__
+
+from .main import \
+    empty_graph, \
+    graph_from_file, \
+    graph_to_file, \
+    run, \
+    display, \
+    sclbl_input, \
+    list_data_types
+
+from .validate import \
+    clean, \
+    check
+
+from .node import \
+    node, \
+    add_node, \
+    add_nodes
+
+from .constant import \
+    constant, \
+    add_constant
+
+from .input import \
+    list_inputs, \
+    add_input, \
+    rename_input, \
+    replace_input, \
+    delete_input
+
+from .output import \
+    list_outputs, \
+    add_output, \
+    rename_output, \
+    replace_output, \
+    delete_output
+
+from .merge import \
+    merge
+
+
+
+
+
 
 

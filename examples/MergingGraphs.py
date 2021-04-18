@@ -50,59 +50,22 @@ so.graph_to_file(sg1, "onnx/resize-image-450x600-300x400.onnx")
 # Now, we open up the original image processing graph
 sg2 = so.graph_from_file("onnx/check_container.onnx")
 
+# The outputs of sg1 and the inputs of sg2 need to match; lets examine them
+so.list_outputs(sg1)
+so.list_inputs(sg2)
 
-
-
-# And next, we merge the two graphs
-g = copy.deepcopy(sg1)
-
-
-for init in sg2.initializer:
-    g.initializer.append(init)
-
-for node in sg2.node:
-    g.node.append(node)
-
-for node in g.node:
-    for index, name in enumerate(node.input):
-        if name == "small_image":
-            node.input[index] = "in"
-#
-
-i = 1
-names = []
-for node in g.node:
-
-    if node.name in names:
-        node.name = node.name + str(i)
-    names.append(node.name)
-
-    for index, name in enumerate(node.input):
-        if name == "in":
-            node.input[index] = "small_image"
-            #print("found...")
-        print(name)
-    # print(node)
-    i += 1
-#
-# for init in g.initializer:
-#     print(dir(init))
-#     if init.name != "c1":
-#         print(init)
-
-so.list_outputs(sg1)  # small image, INT32, [300,400,3]
-g = so.delete_output(g, "small_image")
-
-#so.list_inputs(sg2)  # in, INT32,, [300,400,3]
-#g = so.delete_input(g, "in")
-
-#so.list_outputs(sg2)
-g = so.add_output(g, "result", "BOOL", [1])  # add sg2 output(s)
-
-
-g = so.clean(g)
-so.check(g)
+# Merge the two graphs, the outputs will be merged with the inputs in order of appearance:
+g = so.merge(sg1, sg2, outputs=["small_image"], inputs=["in"])
 so.display(g)
+
+# And now it works with the large image:
+result = so.run(g, inputs=large_input, outputs=['result'])
+# Print the result
+if result[0]:
+    print("The container in the large image is empty.")
+else:
+    print("The container in the large image filled.")
+
 
 
 

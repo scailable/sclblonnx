@@ -62,7 +62,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 print("The ONNX model predicts the image is a", classes[np.argmax(out[0])] + ".")
 
 # Or inspect the input for the Scailable runtime
-print(so.input_str(input_example))
+print(so.sclbl_input(input_example))
 
 # And store the file (since we did clean it):
 so.graph_to_file(g, "onnx/cifar10-resnet20-clean.onnx")
