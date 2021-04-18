@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import subprocess
@@ -12,6 +13,9 @@ import sclblonnx._globals as glob
 
 
 # empty_graph creates an empty graph
+from sclblonnx.utils import _print
+
+
 def empty_graph(
         _default_name: str = "sclblgraph"):
     """ empty_graph returns an empty graph
@@ -193,21 +197,42 @@ def display(
 
 
 # sclbl_input generates the example input for a Scailable runtime
-def sclbl_input(inputs: {}):
+def sclbl_input(
+        inputs: {},
+        example_type: str = "raw",
+        _verbose: bool = True):
     """ input_str returns an example input for a Scailable runtime
 
     The method takes a valid input object to an onnx graph (i.e., one used for the "inputs" argument
     in the run() function, and returns and prints an example input to a Scailable runtime / REST endpoint
 
     Args:
-        inputs The input object
+        inputs: The input object as supplied to the run() function to test an ONNX grph
+        example_type: The type of example string ("raw" for base64 encoded, or "pb" for protobuf)
+        _verbose: Print user feedback; default True (note, errors are always printed).
 
     Returns:
-        An example input, base64 formatted.
+        An example input to a Scailable runtime.
     """
-    # todo(Robin): Fix input_str() function.
-    print("WARNING: input_str is not yet implemented.")
-    return "Not yet..."
+    if not inputs:
+        _print("No input provided.")
+
+    if example_type == "raw":
+        if len(inputs) == 1:
+            bytes = inputs[0].tobytes()
+            encoded = base64.b64encode(bytes)
+            value_str = encoded.decode('ascii')
+        else:
+            value_str = ""
+            for val in inputs.values():
+                bytes = val.tobytes()
+                encoded = base64.b64encode(bytes)
+                value_str += (encoded.decode('ascii') + '","')
+            value_str = value_str.rstrip(',"')
+        input_json = '{"input": ["' + value_str + '"], "type":"raw"}'
+        return json.dumps(input_json)
+
+
 
 
 # list_data_types prints all data available data types

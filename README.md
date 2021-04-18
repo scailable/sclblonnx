@@ -15,9 +15,6 @@ g = so.add_node(g, n1)
 Please see the `examples/` folder in this repo for examples.
 
 Todo:
-
-- Fix merge.py / merge function
-- Finalize "MergingGraphs.py"
 - Fix sclbl_input()
 - (re)Test all tutorials
 - Add tests for all files in main package

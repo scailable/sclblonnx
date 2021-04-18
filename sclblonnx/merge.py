@@ -32,7 +32,6 @@ def merge(
         outputs: A list containing all outputs of sg1 by name, in order of the desired match to the inputs of sg2
         inputs: A list containing all inputs of sg2 by name, in order of appearance for the desired match.
         _verbose: Print user feedback; default True (note, errors are always printed).
-
     """
     # First, a bunch of checks:
     if type(sg1) is not xpb2.GraphProto:

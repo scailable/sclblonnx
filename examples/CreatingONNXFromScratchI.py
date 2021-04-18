@@ -1,6 +1,11 @@
+import base64
+import json
 import os
 
+import requests
+
 import sclblonnx as so
+import sclblpy as sp
 import numpy as np
 
 """
@@ -63,3 +68,23 @@ so.graph_to_file(g, "onnx/add-scalars.onnx")  # And yay, this one converts
 example_input = so.sclbl_input(example)
 print(example_input)
 
+# Run using sclblpy
+# Todo: Does not work
+# result = sp.run("13c91795-a048-11eb-9acc-9600004e79cc", example_input)
+
+# Todo: copy paste to website does not work
+
+
+# This does work
+url = "https://taskmanager.sclbl.net:8080/task/13c91795-a048-11eb-9acc-9600004e79cc"
+payload = "{\"input\":{\"content-type\":\"json\",\"location\":\"embedded\",\"data\":" \
+          + example_input + \
+          "},\"output\":{\"content-type\":\"json\",\"location\":\"echo\"}," \
+          "\"control\":1,\"properties\":{\"language\":\"WASM\"}}"
+headers = {
+    'Content-Type': 'application/x-www-form-urlencoded'
+}
+response = requests.request("POST", url, headers=headers, data=payload)
+print(response.text.encode('utf8'))
+
+# Todo: Discuss the 3.7000000400 w. Robin
