@@ -4,11 +4,11 @@ import sclblonnx as so
 """
 EXAMPLE 5:
 
-Editing an existing graph: while the previous examples already shows some graph editing, here we more elaborate
-editing of the graph; we demonstrate changing inputs, and we demonstrate the use of the If operator for
+Editing an existing graph: while the previous examples already showed some graph editing, here we demonstrate more
+elaborate editing of the graph; we demonstrate changing inputs, and we demonstrate the use of the If operator for
 post-processing.
 
-We will build on the PyTorch example (see ExportingFromPyTorch.py) to, instead of outputting the scores from the
+We will build on the PyTorch example (see example_03.py) to, instead of outputting the scores from the
 cifar model, output 99 if there is a horse on the image and 0 otherwise.
 """
 

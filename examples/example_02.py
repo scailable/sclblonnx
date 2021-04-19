@@ -46,7 +46,7 @@ g = so.add_constant(g, "c2", threshold, "INT32")
 n4 = so.node("Less", inputs=['sum', 'c2'], outputs=['result'])
 g = so.add_node(g, n4)
 
-# Check: says that there is no output defined (which is true...)
+# Check provides an error stating that no outputs have been specified (which is true at this point)
 so.check(g)
 
 # Add output:
@@ -62,7 +62,7 @@ so.display(g)
 g = so.clean(g)
 
 # Let's try it out for the first image:
-img_data = np.array(Image.open("images/2.JPG"), dtype=np.int32)
+img_data = np.array(Image.open("images/1.JPG"), dtype=np.int32)
 example = {"in": img_data.astype(np.int32)}
 result = so.run(g,
                 inputs=example,
@@ -74,9 +74,25 @@ if result[0]:
 else:
     print("The container is filled.")
 
-# Example input for a Scailable runtime:
-input_example = so.sclbl_input(example)
-print(input_example)
-
 # Store the graph
-so.graph_to_file(g, "onnx/check_container.onnx")
+so.graph_to_file(g, "onnx/check-container.onnx")
+
+
+'''
+Additional usage of sclblpy for upload and evaluation:
+
+# Import sclblpy
+import sclblpy as sp
+
+# Upload model
+sp.upload_onnx("onnx/check-container.onnx", docs={"name": "Example_02: Image", "documentation": "None provided."})
+
+# Example input for a Scailable runtime:
+input_str = so.sclbl_input(example, _verbose=False)
+
+# Run
+sp.run("5622645a-a10f-11eb-9acc-9600004e79cc", input_str)
+'''
+
+
+

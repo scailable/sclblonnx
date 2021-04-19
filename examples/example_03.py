@@ -3,9 +3,9 @@ import numpy as np
 from PIL import Image
 
 """
-EXAMPLE 4: Using previously exported pyTorch model
+EXAMPLE 3: Using a previously exported pyTorch model
 
-Here we open an exisiting and pre-trained Resnet model (trained on the cifar data).
+Here we open an existing and pre-trained Resnet model (trained on the cifar data).
 
 For training details see:
 https://github.com/scailable/sclbl-tutorials/tree/master/sclbl-pytorch-onnx
@@ -20,6 +20,7 @@ g = so.graph_from_file("onnx/cifar10-resnet20.onnx")
 g = so.clean(g)
 so.check(g)
 so.display(g)
+
 
 # To open an image we write a small utility function using Pillow to transform an image to a numpy array.
 def process_image(image_path):
@@ -51,9 +52,10 @@ def process_image(image_path):
 
 
 # Open the image and execute the graph:
-input_example = process_image("images/horse5.png").astype(np.float32)
+img_data = process_image("images/horse5.png").astype(np.float32)
+example = {"input": img_data}
 out = so.run(g,
-             inputs={"input": input_example},
+             inputs=example,
              outputs=['output']
              )
 
@@ -61,8 +63,23 @@ out = so.run(g,
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 print("The ONNX model predicts the image is a", classes[np.argmax(out[0])] + ".")
 
-# Or inspect the input for the Scailable runtime
-print(so.sclbl_input(input_example))
-
 # And store the file (since we did clean it):
 so.graph_to_file(g, "onnx/cifar10-resnet20-clean.onnx")
+
+
+'''
+Additional usage of sclblpy for upload and evaluation:
+
+# Import sclblpy
+import sclblpy as sp
+
+# Upload model
+sp.upload_onnx("onnx/cifar10-resnet20-clean.onnx", docs={"name": "Example_03: Cifar", "documentation": "None provided."})
+
+# Example input for a Scailable runtime:
+input_str = so.sclbl_input(example, _verbose=False)
+
+# Run
+sp.run("11928b2a-a110-11eb-9acc-9600004e79cc", input_str)
+'''
+

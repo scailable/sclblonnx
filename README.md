@@ -15,10 +15,8 @@ g = so.add_node(g, n1)
 Please see the `examples/` folder in this repo for examples.
 
 Todo:
-- Fix sclbl_input()
-- (re)Test all tutorials
+- Work through all files, change print to _print and check.
 - Add tests for all files in main package
   - add filename_test for each .py file
-- Check remaining todo's
-- Fix README
-- Clean up examples / tutorials
+- Finalize example 06
+

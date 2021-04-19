@@ -6,7 +6,7 @@ import sclblonnx as so
 import numpy as np
 
 """
-EXAMPLE 3: Converting a model to ONNX from tensforflow and fixing the dynamic input & output.
+EXAMPLE 4: Converting a model to ONNX from TensorFlow and fixing the dynamic input & output.
 
 Here we first train a simple tf model (using keras) using the sklearn diabetes dataset. 
 We store the model to onnx using the keras2onnx package (please note that this is in flux).
@@ -51,8 +51,7 @@ g = so.graph_from_file("onnx/tf-keras-dynamic.onnx")
 
 # check() and clean()
 so.check(g)
-g = so.clean(g)
-
+g = so.clean(g)  # Fails due to dynamic size
 
 # Note, while this model passes check(), clean() provides a warning message due to the dynamic input (Nx10).
 # This occurs because the training data is N long. However, for inference we would like it to be 1x10
@@ -82,11 +81,22 @@ result = so.run(g,
                 )
 print(result)
 
-
-# Or inspect the input for the Scailable runtime
-print(so.sclbl_input(example))
-
-
 # Finally, we can store the changed graph:
 so.graph_to_file(g, "onnx/tf-keras-static.onnx")
 
+
+'''
+Additional usage of sclblpy for upload and evaluation:
+
+# Import sclblpy
+import sclblpy as sp
+
+# Upload model
+sp.upload_onnx("onnx/tf-keras-static.onnx", docs={"name": "Example_04: TF-Keras-static", "documentation": "None provided."})
+
+# Example input for a Scailable runtime:
+input_str = so.sclbl_input(example, _verbose=False)
+
+# Run
+sp.run("0d7db3c7-a111-11eb-9acc-9600004e79cc", input_str)
+'''

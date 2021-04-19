@@ -17,7 +17,8 @@ from .main import \
     run, \
     display, \
     sclbl_input, \
-    list_data_types
+    list_data_types, \
+    list_operators
 
 from .validate import \
     clean, \

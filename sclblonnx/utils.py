@@ -99,7 +99,7 @@ def _print(
 
     Args:
         msg: The message to print
-        print_type: "feedback" or "warning"
+        print_type: "MSG", "LIT" or "ERR", default "ERR"
         silent: Suppress printing, default False
     """
     if not silent:
@@ -107,6 +107,8 @@ def _print(
             print(msg)
         elif print_type == "ERR":
             print(f"{bcolors.FAIL}ERROR: "+msg+f"{bcolors.ENDC}")
+        elif print_type == "LIT":
+            print(f"{bcolors.OKGREEN}" + msg + f"{bcolors.ENDC}")
         else:
             print(msg)
 

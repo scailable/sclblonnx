@@ -8,6 +8,7 @@ from onnx import ModelProto as xmp
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
 from onnx import save as xsave
+from onnx import numpy_helper as xnp
 
 import sclblonnx._globals as glob
 
@@ -199,7 +200,7 @@ def display(
 # sclbl_input generates the example input for a Scailable runtime
 def sclbl_input(
         inputs: {},
-        example_type: str = "raw",
+        example_type: str = "pb",
         _verbose: bool = True):
     """ input_str returns an example input for a Scailable runtime
 
@@ -208,7 +209,7 @@ def sclbl_input(
 
     Args:
         inputs: The input object as supplied to the run() function to test an ONNX grph
-        example_type: The type of example string ("raw" for base64 encoded, or "pb" for protobuf)
+        example_type: The type of example string ("raw" for base64 encoded, or "pb" for protobuf, default pb)
         _verbose: Print user feedback; default True (note, errors are always printed).
 
     Returns:
@@ -219,27 +220,69 @@ def sclbl_input(
 
     if example_type == "raw":
         if len(inputs) == 1:
-            bytes = inputs[0].tobytes()
-            encoded = base64.b64encode(bytes)
-            value_str = encoded.decode('ascii')
+            for val in inputs.values():
+                bytes = val.tobytes()
+                encoded = base64.b64encode(bytes)
+                value_str = encoded.decode('ascii')
         else:
-            value_str = ""
+            value_str = '["'
             for val in inputs.values():
                 bytes = val.tobytes()
                 encoded = base64.b64encode(bytes)
                 value_str += (encoded.decode('ascii') + '","')
             value_str = value_str.rstrip(',"')
-        input_json = '{"input": ["' + value_str + '"], "type":"raw"}'
-        return json.dumps(input_json)
+            value_str += '"]'
+
+        input_json = '{"input": ' + value_str + ', "type":"raw"}'
+        if _verbose:
+            _print("The following input string can be used for the Scailable runtime:", "MSG")
+            _print(input_json, "LIT")
+        return input_json
+
+    elif example_type == "pb" or "protobuf":
+
+        if len(inputs) == 1:
+            for val in inputs.values():
+                tensor = xnp.from_array(val)
+                serialized = tensor.SerializeToString()
+                encoded = base64.b64encode(serialized)
+                value_str = encoded.decode('ascii')
+        else:
+            value_str = '["'
+            for val in inputs.values():
+                tensor = xnp.from_array(val)
+                serialized = tensor.SerializeToString()
+                encoded = base64.b64encode(serialized)
+                value_str += (encoded.decode('ascii') + '","')
+            value_str = value_str.rstrip(',"')
+            value_str += '"]'
+
+        input_json = '{"input": ' + value_str + ', "type":"pb"}'
+        if _verbose:
+            _print("The following input string can be used for the Scailable runtime:", "MSG")
+            _print(input_json, "LIT")
+            _print("The following input string can be used for the web front-end:", "MSG")
+            _print(value_str, "LIT")
+        return input_json
 
 
-
-
-# list_data_types prints all data available data types
+# list_data_types prints all available data types
 def list_data_types():
     """ List all available data types. """
-    print(json.dumps(glob.DATA_TYPES, indent=2))
-    print("Note: STRINGS are not supported at this time.")
+    _print(json.dumps(glob.DATA_TYPES, indent=2), "MSG")
+    _print("Note: STRINGS are not supported at this time.", "LIT")
+
+
+# list_operators prints all operators available within Scailable
+def list_operators():
+    """ List all available Scailable ONNX operators. """
+    try:
+        with open(glob.VERSION_INFO_LOCATION, "r") as f:
+            glob.ONNX_VERSION_INFO = json.load(f)
+    except FileNotFoundError:
+        print("Unable to locate the ONNX_VERSION INFO.")
+        return False
+    _print(json.dumps(glob.ONNX_VERSION_INFO['operators'], indent=2), "MSG")
 
 
 # No command line options for this script:

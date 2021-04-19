@@ -1,12 +1,8 @@
-import base64
 import json
-import os
-
 import requests
-
-import sclblonnx as so
-import sclblpy as sp
 import numpy as np
+import sclblpy as sp  # Import the sclblpy package
+import sclblonnx as so
 
 """
 EXAMPLE 1: Adding two scalars.
@@ -19,8 +15,8 @@ scalars together.
 g = so.empty_graph()
 
 # Add a node to the graph.
-# Please note the list of operators at the operator docs: https://github.com/onnx/onnx/blob/master/docs/Operators.md
-# and run so.list_data_types() to see all Scailable supported data types.
+# Please note the list of available operators at: https://github.com/onnx/onnx/blob/master/docs/Operators.md
+# Run so.list_data_types() and / or so.list_operators() so. to see all Scailable supported data types.
 n1 = so.node('Add', inputs=['x1', 'x2'], outputs=['sum'])
 g = so.add_node(g, n1)
 
@@ -55,36 +51,37 @@ result = so.run(g,
                 )
 print(result)
 
-# We can easily store the graph to the following path.
-so.graph_to_file(g, "onnx/add-scalars.onnx")  # And yay, this one converts
+# We can easily store the graph to a file for upload at http://admin.sclbl.net:
+so.graph_to_file(g, "onnx/add-scalars.onnx")
 
-# And, subsequently upload it to Scailable using the sclblpy package,
-# See the sclblpy package docs for more details.
-# https://pypi.org/project/sclblpy/
-# sp.upload("onnx/manual_add.onnx", docs, etc.)
+# Or, we can upload it to Scailable using the sclblpy package,
+# See the sclblpy package docs for more details. https://pypi.org/project/sclblpy/
+# sp.upload_onnx("onnx/add-scalars.onnx", docs={"name": "Example_01: Add", "documentation": "Empty.."})
 
-# After conversion, it will appear in your dashboard, and you can test it.
-# so.edge_input(inputs) converts an example input to the input that can be used on the devide:
-example_input = so.sclbl_input(example)
+
+# so.sclbl_input(inputs) converts an example input to the input that can be used on the device:
+example_input = so.sclbl_input(example, "pb")
 print(example_input)
 
-# Run using sclblpy
-# Todo: Does not work
-# result = sp.run("13c91795-a048-11eb-9acc-9600004e79cc", example_input)
 
-# Todo: copy paste to website does not work
+# You can use the example to setup your own REST call:
+def do_REST_call(cfid: str, data: str):
+    """ Do rest call calls a REST endpoint on the Scailable cloud"""
+    # This does work
+    url = "https://taskmanager.sclbl.net:8080/task/" + cfid
+    payload = "{\"input\":{\"content-type\":\"json\",\"location\":\"embedded\",\"data\":" \
+              + json.dumps(data) + \
+              "},\"output\":{\"content-type\":\"json\",\"location\":\"echo\"}," \
+              "\"control\":1,\"properties\":{\"language\":\"WASM\"}}"
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    return response.text.encode('utf8')
 
 
-# This does work
-url = "https://taskmanager.sclbl.net:8080/task/13c91795-a048-11eb-9acc-9600004e79cc"
-payload = "{\"input\":{\"content-type\":\"json\",\"location\":\"embedded\",\"data\":" \
-          + example_input + \
-          "},\"output\":{\"content-type\":\"json\",\"location\":\"echo\"}," \
-          "\"control\":1,\"properties\":{\"language\":\"WASM\"}}"
-headers = {
-    'Content-Type': 'application/x-www-form-urlencoded'
-}
-response = requests.request("POST", url, headers=headers, data=payload)
-print(response.text.encode('utf8'))
+# Do the actual call using requests:
+print(do_REST_call("403cd8a0-a10f-11eb-9acc-9600004e79cc", example_input))
 
-# Todo: Discuss the 3.7000000400 w. Robin
+# Or again use the sclblpy package, this time use the .run() function to execute the graph on the Scailable cloud:
+print(sp.run("403cd8a0-a10f-11eb-9acc-9600004e79cc", example_input))
