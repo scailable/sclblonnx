@@ -24,9 +24,11 @@ sg1 = so.empty_graph("resize_graph")
 sg1 = so.add_input(sg1, "large_image", "INT32", [450, 600, 3])  # Add the input
 
 # The resize node:
+e1 = so.constant("roi", np.array([]), "FLOAT")  # Note the empty fields for roi and scales.
+e2 = so.constant("scales", np.array([]), "FLOAT")
 c1 = so.constant("size", np.array([300, 400, 3]), "INT64")
-n1 = so.node("Resize", inputs=['large_image', '', '', 'size'], outputs=['small_image'])
-sg1 = so.add_nodes(sg1, [c1, n1])
+n1 = so.node("Resize", inputs=['large_image', 'roi', 'scales', 'size'], outputs=['small_image'])
+sg1 = so.add_nodes(sg1, [e1, e2, c1, n1])
 sg1 = so.add_output(sg1, "small_image", "INT32", [300, 400, 3])
 
 # Check and clean
@@ -67,6 +69,5 @@ else:
     print("The container in the large image is filled.")
 
 # Store the merged graph
-# Todo(McK): Check this merged graph; it does not compile...
 g = so.graph_to_file(g, "onnx/check-container-resize.onnx")
 

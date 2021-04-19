@@ -2,21 +2,17 @@ import base64
 import json
 import os
 import subprocess
-
 import onnxruntime as xrt
 from onnx import ModelProto as xmp
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
 from onnx import save as xsave
 from onnx import numpy_helper as xnp
-
 import sclblonnx._globals as glob
-
-
-# empty_graph creates an empty graph
 from sclblonnx.utils import _print
 
 
+# empty_graph creates an empty graph
 def empty_graph(
         _default_name: str = "sclblgraph"):
     """ empty_graph returns an empty graph
@@ -32,7 +28,7 @@ def empty_graph(
     try:
         graph = xpb2.GraphProto(name=_default_name)
     except Exception as e:
-        print("Unable to create graph: " + str(e))
+        _print("Unable to create graph: " + str(e))
         return False
     return graph
 
@@ -58,7 +54,7 @@ def graph_from_file(
             mod_temp.ParseFromString(content)
         graph = mod_temp.graph
     except Exception as e:
-        print("Unable to open the file: " + str(e))
+        _print("Unable to open the file: " + str(e))
         return False
     return graph
 
@@ -81,11 +77,11 @@ def graph_to_file(
         True if successful, False otherwise.
     """
     if not filename:
-        print("Please specify a filename.")
+        _print("Unable to save: Please specify a filename.")
         return False
 
     if type(graph) is not xpb2.GraphProto:
-        print("graph is not an ONNX graph")
+        _print("Unable to save: Graph is not an ONNX graph")
 
     try:
         mod = xhelp.make_model(graph, producer_name=_producer)
@@ -122,20 +118,20 @@ def run(
 
     store = graph_to_file(graph, _tmpfile)
     if not store:
-        print("Unable to store model for evaluation.")
+        _print("Unable to store model for evaluation.")
         return False
 
     try:
         sess = xrt.InferenceSession(_tmpfile)
         out = sess.run(outputs, inputs)
     except Exception as e:
-        print("Failed to run the model: " + str(e))
+        _print("Failed to run the model: " + str(e))
         return False
 
     try:
         os.remove(_tmpfile)
     except Exception as e:
-        print("We were unable to delete the file " + _tmpfile)
+        print("We were unable to delete the file " + _tmpfile, "MSG")
 
     return out
 
@@ -162,7 +158,7 @@ def display(
         SclblONNXError
     """
     if type(graph) is not xpb2.GraphProto:
-        print("graph is not a valid ONNX graph.")
+        _print("graph is not a valid ONNX graph.")
         return False
 
     # store as tmpfile

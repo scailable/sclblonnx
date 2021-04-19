@@ -1,66 +1,49 @@
 import os
-import onnx
-import pytest
+import numpy as np
+from onnx import onnx_ml_pb2 as xpb2
+from sclblonnx import empty_graph, graph_from_file, graph_to_file, run
 
-from sclblonnx.main import display, graph_from_file, graph_to_file, check, clean
+
+def test_empty_graph():
+    g = empty_graph()
+    assert type(g) is xpb2.GraphProto, "Failed to create empty graph."
 
 
-# Test graph from file:
 def test_graph_from_file():
-    # Test non-existing file
-    g = graph_from_file('not_existing.onnx')
-    assert not g, "This should be false"
-    # Test existing file
-    g = graph_from_file("source/example01.onnx")
-    assert type(g) is onnx.onnx_ml_pb2.GraphProto
+    g = graph_from_file("files/non-existing-file.onnx")
+    assert not g, "Graph from file failed to check emtpy file."
+    g = graph_from_file("files/example01.onnx")
+    assert type(g) is xpb2.GraphProto, "Graph from file failed to open file."
 
 
-# Test graph storage:
 def test_graph_to_file():
-    # Test not a proper graph
-    with pytest.raises(SclblONNXError) as excinfo:
-        graph_to_file({}, 'name.onnx')
-    assert "valid ONNX graph" in str(excinfo.value)
-    # Test existing file
-    g = graph_from_file("source/example01.onnx")
-    result = graph_to_file(g, '_tmp.onnx')
-    assert result is True
-    # Remove the file
-    os.remove("_tmp.onnx")
+    g = empty_graph()
+    check1 = graph_to_file(g, "")
+    assert not check1, "Graph to file failed should have failed."
+    check2 = graph_to_file(g, "files/test_graph_to_file.onnx")
+    assert check2, "Graph to file failed to write file."
+    os.remove("files/test_graph_to_file.onnx")
 
 
-# Test alle examples in test/source
-def test_check():
-    dir = "files"
-    for fname in os.listdir(dir):
-        if fname.endswith(".onnx"):
-            print(fname)
-            fpath = dir + "/" + fname
-            g = graph_from_file(fpath)
-            check(g, False)
+def test_run():
+    g = graph_from_file("files/add.onnx")
+    example = {"x1": np.array([2]).astype(np.float32), "x2": np.array([5]).astype(np.float32)}
+    result = run(g,
+                    inputs=example,
+                    outputs=["sum"]
+                    )
+    assert result[0] == 7, "Add output not correct."
+    result = run(g, inputs="", outputs="sum")
+    assert not result, "Model with this input should not run."
 
 
-# Functional test off all bits of the package:
-def test_functional():
-    # Open an existing graph:
-    g = graph_from_file("source/example07.onnx")
+def test_display():
+    from onnx import TensorProto
+    print(TensorProto.DOUBLE)
 
-    # Display the graph:
-    display(g)
-
-    # Clean up:
-    g = clean(g, _optimize=True, _simplify=True, _check=False)
-    display(g)
+    return True  # No test for display
 
 
-    # Check the graph:
-    #check(g)
-    #print(g)
-
-#test_graph_from_file()
-#test_graph_to_file()
-#test_functional()
-#test_check()
-
-g = graph_from_file("source/example01.onnx")
-display(g)
+# def test_scblbl_input():
+# def test_list_data_types
+# def test_list_operators
