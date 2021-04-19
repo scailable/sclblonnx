@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from onnx import onnx_ml_pb2 as xpb2
-from sclblonnx import empty_graph, graph_from_file, graph_to_file, run
+from sclblonnx import empty_graph, graph_from_file, graph_to_file, run, list_data_types, list_operators, sclbl_input
 
 
 def test_empty_graph():
@@ -44,6 +44,22 @@ def test_display():
     return True  # No test for display
 
 
-# def test_scblbl_input():
-# def test_list_data_types
-# def test_list_operators
+def test_scblbl_input():
+    example = {"in": np.array([1,2,3,4]).astype(np.int32)}
+    result = sclbl_input(example)
+    assert result == '{"input": CAQQBkoQAQAAAAIAAAADAAAABAAAAA==, "type":"pb"}', "PB output not correct."
+
+    example = {"x1": np.array([1,2,3,4]).astype(np.int32), "x2": np.array([1,2,3,4]).astype(np.int32)}
+    result = sclbl_input(example)
+    assert result == '{"input": ["CAQQBkoQAQAAAAIAAAADAAAABAAAAA==","CAQQBkoQAQAAAAIAAAADAAAABAAAAA=="], "type":"pb"}', "PB output 2 not correct."
+
+    # todo: Do raw tests.
+
+
+def test_list_data_types():
+    test = list_data_types()
+    assert test, "Data types should be listed."
+
+def test_list_operators():
+    test = list_operators()
+    assert test, "Operators should be listed."

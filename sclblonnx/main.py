@@ -63,7 +63,8 @@ def graph_from_file(
 def graph_to_file(
         graph: xpb2.GraphProto,
         filename: str,
-        _producer: str = "sclblonnx"):
+        _producer: str = "sclblonnx",
+        **kwargs):
     """ graph_to_file stores an onnx graph to a .onnx file
 
     Stores a graph to a file
@@ -84,13 +85,13 @@ def graph_to_file(
         _print("Unable to save: Graph is not an ONNX graph")
 
     try:
-        mod = xhelp.make_model(graph, producer_name=_producer)
+        mod = xhelp.make_model(graph, producer_name=_producer, **kwargs)
     except Exception as e:
         print("Unable to convert graph to model: " + str(e))
         return False
 
     try:
-        xsave(mod, filename)
+        xsave(mod, filename, **kwargs)
     except Exception as e:
         print("Unable to save the model: " + str(e))
         return False
@@ -103,7 +104,8 @@ def run(
         graph: xpb2.GraphProto,
         inputs: {},
         outputs: [],
-        _tmpfile: str = ".tmp.onnx"):
+        _tmpfile: str = ".tmp.onnx",
+        **kwargs):
     """ run executes a give graph with the given input and returns the output
 
     Args:
@@ -122,7 +124,7 @@ def run(
         return False
 
     try:
-        sess = xrt.InferenceSession(_tmpfile)
+        sess = xrt.InferenceSession(_tmpfile, **kwargs)
         out = sess.run(outputs, inputs)
     except Exception as e:
         _print("Failed to run the model: " + str(e))
@@ -139,7 +141,7 @@ def run(
 # display uses Netron to display a graph
 def display(
         graph: xpb2.GraphProto,
-        _tmpfile: str = '.temp.onnx'):
+        _tmpfile: str = '.tmp.onnx'):
     """ display a onnx graph using netron.
 
     Pass a graph to the display function to open it in Netron.
@@ -267,6 +269,7 @@ def list_data_types():
     """ List all available data types. """
     _print(json.dumps(glob.DATA_TYPES, indent=2), "MSG")
     _print("Note: STRINGS are not supported at this time.", "LIT")
+    return True
 
 
 # list_operators prints all operators available within Scailable
@@ -279,6 +282,7 @@ def list_operators():
         print("Unable to locate the ONNX_VERSION INFO.")
         return False
     _print(json.dumps(glob.ONNX_VERSION_INFO['operators'], indent=2), "MSG")
+    return  True
 
 
 # No command line options for this script:
