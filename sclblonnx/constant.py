@@ -2,7 +2,7 @@ import numpy as np
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
 
-from sclblonnx.utils import _data_type
+from sclblonnx.utils import _data_type, _print
 from sclblonnx.node import add_node
 
 
@@ -17,10 +17,15 @@ def constant(name: str,
         name: Name of the (output value of the) constant node to determine the graph topology
         value: Values of the node (as a np.array)
         data_type: Data type of the node
+        **kwargs
 
     Returns:
-        The extended graph.
+        A constant node.
     """
+    if not name:
+        _print("Unable to create unnamed constant.")
+        return False
+
     dtype = _data_type(data_type)
     if not dtype:
         return False
@@ -30,7 +35,7 @@ def constant(name: str,
                                         value=xhelp.make_tensor(name=name + "-values", data_type=dtype,
                                                                 dims=value.shape, vals=value.flatten()), **kwargs)
     except Exception as e:
-        print("Unable to create the constant node: " + str(e))
+        _print("Unable to create the constant node: " + str(e))
         return False
 
     return constant_node
@@ -43,7 +48,9 @@ def add_constant(
         value: np.array,
         data_type: str,
         **kwargs):
-    """ Add a constant node to an existing graph
+    """ Create and add a constant node to an existing graph.
+
+    Note: use add_node() if you want to add an existing constant node to an existing graph
 
     Args:
         graph: A graph, onnx.onnx_ml_pb2.GraphProto.
@@ -67,12 +74,17 @@ def add_constant(
                                         value=xhelp.make_tensor(name=name + "-values", data_type=dtype,
                                                                 dims=value.shape, vals=value.flatten()), **kwargs)
     except Exception as e:
-        print("Unable to create the constant node: " + str(e))
+        _print("Unable to create the constant node: " + str(e))
         return False
 
-    graph = add_node(graph, constant_node, **kwargs)
+    try:
+        graph = add_node(graph, constant_node, **kwargs)
+    except Exception as e:
+        _print("Unable to add the constant node to the graph: " + str(e))
+        return False
+
     if not graph:
-        print("Unable to add constant node to graph.")
+        _print("Unable to add constant node to graph.")
         return False
     return graph
 

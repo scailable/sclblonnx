@@ -145,7 +145,7 @@ def _data_type(data_string: str):
     for key, val in glob.DATA_TYPES.items():
         if key == data_string:
             return val
-    print("Data type not found. Use `list_data_types()` to list all supported data types.")
+    _print("Data type not found. Use `list_data_types()` to list all supported data types.")
     return False
 
 
