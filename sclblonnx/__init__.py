@@ -27,7 +27,8 @@ from .validate import \
 from .node import \
     node, \
     add_node, \
-    add_nodes
+    add_nodes, \
+    delete_node
 
 from .constant import \
     constant, \

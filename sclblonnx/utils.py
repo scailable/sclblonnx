@@ -1,18 +1,17 @@
 import json
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
-
 import sclblonnx._globals as glob
 
 
 # _parse_element parses a graph input  or output element and return its properties for printing.
-def _parse_element(elem):
-    """ Parse a graph input or output element and return a string.
+def _parse_element(elem: xpb2.ValueInfoProto):
+    """ Parse a graph input or output element and return its contents.
 
     Utility.
 
     Args:
-        elem, a TypeProto.
+        elem, a ValueInfoProto.
 
     Returns:
         name The name of the element
@@ -40,19 +39,45 @@ def _parse_element(elem):
 
 
 # _value creates a new value description
-def _value(name, data_type, dimensions):
+def _value(name: str,
+           data_type: str,
+           dimensions: [],
+           **kwargs):
+    """_value creates a tensor value
 
+    Args:
+        name: TensorValue name.
+        data_type: String data type.
+        dimensions: List with dimensions.
+        **kwargs
+
+
+    """
     dtype = _data_type(data_type)
-    if not dtype:
+    if not dtype:  # Error printed by _data_type()
         return False
 
-    val = xhelp.make_tensor_value_info(name, dtype, dimensions)
+    try:
+        val = xhelp.make_tensor_value_info(name, dtype, dimensions, **kwargs)
+    except Exception as e:
+        _print("Unable to create tensor value: " + str(e))
+        return False
+
     return val
 
 
 def _input_details(graph: xpb2.GraphProto):
+    """ List details of the inputs of the graph by name.
+
+    Args:
+        The graph object.
+
+    Returns:
+        A dict containing the input details.
+
+    """
     if type(graph) is not xpb2.GraphProto:
-        print("graph is not a valid ONNX graph.")
+        _print("graph is not a valid ONNX graph.")
         return False
 
     names = {}
@@ -65,8 +90,17 @@ def _input_details(graph: xpb2.GraphProto):
 
 
 def _output_details(graph: xpb2.GraphProto):
+    """ List details of the outputs of the graph by name.
+
+    Args:
+        The graph object.
+
+    Returns:
+        A dict containing the output details.
+
+    """
     if type(graph) is not xpb2.GraphProto:
-        print("graph is not a valid ONNX graph.")
+        _print("graph is not a valid ONNX graph.")
         return False
 
     names = {}
@@ -78,7 +112,7 @@ def _output_details(graph: xpb2.GraphProto):
     return names
 
 
-# colors, used for printing.
+# bcolors, used for printing.
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -131,31 +165,33 @@ def _load_version_info() -> bool:
         with open(glob.VERSION_INFO_LOCATION, "r") as f:
             glob.ONNX_VERSION_INFO = json.load(f)
     except FileNotFoundError:
-        print("Unable to locate the ONNX_VERSION INFO.")
+        _print("Unable to locate the ONNX_VERSION INFO.")
         return False
     return True
 
 
-# _data_type converts a data_string to the actual data_type int (see _globals.py)
+# _data_type converts a data_string to the data_type int (see _globals.py)
 def _data_type(data_string: str):
-    """ convert the data type to the appropriate number
+    """ convert the data type string (i.e., FLOAT, INT16, etc.) to the appropriate int.
 
     See: https://deeplearning4j.org/api/latest/onnx/Onnx.TensorProto.DataType.html
     """
     for key, val in glob.DATA_TYPES.items():
         if key == data_string:
             return val
-    _print("Data type not found. Use `list_data_types()` to list all supported data types.")
+    _print("Data string not found. Use `list_data_types()` to list all supported data strings.")
     return False
 
 
 # _data_string converts a data_type int to a data string
 def _data_string(data_type: int):
-    """ convert the data type mumber to the appropriate string
+    """ convert the data type number to the appropriate string
 
     See: https://deeplearning4j.org/api/latest/onnx/Onnx.TensorProto.DataType.html
     """
     for key, val in glob.DATA_TYPES.items():
         if val == data_type:
             return key
-    return "NaN"
+
+    _print("Data type not found. Use `list_data_types()` to list all supported data types.")
+    return False
