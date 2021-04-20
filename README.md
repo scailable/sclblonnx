@@ -14,9 +14,3 @@ g = so.add_node(g, n1)
 ```
 Please see the `examples/` folder in this repo for examples.
 
-Todo:
-- Work through all files, change print to _print and check.
-- Add tests for all files in main package
-  - add filename_test for each .py file
-- Finalize example 06
-
