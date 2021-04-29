@@ -1,4 +1,8 @@
 # sclblonnx
+
+[![PyPI Release](https://github.com/scailable/sclblonnx/workflows/PyPI%20Release/badge.svg)](https://pypi.org/project/sclblonnx/)
+
+
 The `sclblonnx` package provide a high level API to construct and alter ONNX graphs.
 
 The basic usage is as follows:
