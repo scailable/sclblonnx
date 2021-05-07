@@ -221,7 +221,7 @@ def sclbl_input(
             for val in inputs.values():
                 bytes = val.tobytes()
                 encoded = base64.b64encode(bytes)
-                value_str = encoded.decode('ascii')
+                value_str = '"'+encoded.decode('ascii')+'"'
         else:
             value_str = '["'
             for val in inputs.values():
@@ -244,7 +244,7 @@ def sclbl_input(
                 tensor = xnp.from_array(val)
                 serialized = tensor.SerializeToString()
                 encoded = base64.b64encode(serialized)
-                value_str = encoded.decode('ascii')
+                value_str = '"'+encoded.decode('ascii')+'"'
         else:
             value_str = '["'
             for val in inputs.values():
