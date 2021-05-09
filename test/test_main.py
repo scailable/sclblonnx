@@ -47,7 +47,7 @@ def test_display():
 def test_scblbl_input():
     example = {"in": np.array([1,2,3,4]).astype(np.int32)}
     result = sclbl_input(example, _verbose=False)
-    assert result == '{"input": CAQQBkoQAQAAAAIAAAADAAAABAAAAA==, "type":"pb"}', "PB output not correct."
+    assert result == '{"input": "CAQQBkoQAQAAAAIAAAADAAAABAAAAA==", "type":"pb"}', "PB output not correct."
 
     example = {"x1": np.array([1,2,3,4]).astype(np.int32), "x2": np.array([1,2,3,4]).astype(np.int32)}
     result = sclbl_input(example, _verbose=False)
@@ -56,12 +56,16 @@ def test_scblbl_input():
 
     example = {"in": np.array([1,2,3,4]).astype(np.int32)}
     result = sclbl_input(example, "raw", _verbose=False)
-    assert result == '{"input": AQAAAAIAAAADAAAABAAAAA==, "type":"raw"}', "Raw output not correct."
+    assert result == '{"input": "AQAAAAIAAAADAAAABAAAAA==", "type":"raw"}', "Raw output not correct."
 
     example = {"x1": np.array([1,2,3,4]).astype(np.int32), "x2": np.array([1,2,3,4]).astype(np.int32)}
     result = sclbl_input(example, "raw", _verbose=False)
     assert result == '{"input": ["AQAAAAIAAAADAAAABAAAAA==","AQAAAAIAAAADAAAABAAAAA=="], "type":"raw"}',\
         "Raw output 2 not correct. "
+
+    example = {"x1": np.array([1.2]).astype(np.float32), "x2": np.array([2.5]).astype(np.float32)}
+    input = sclbl_input(example, _verbose=False)
+    print(input)
 
 
 def test_list_data_types():
