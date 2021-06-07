@@ -40,6 +40,7 @@
     "Exp",
     "Flatten",
     "Floor",
+    "Gather",
     "Gemm",
     "GlobalAveragePool",
     "Greater",
