@@ -123,7 +123,7 @@ def merge(
         _print("Your merged graph does not pass check(). Please inspect the returned graph.", "MSG", (not _verbose))
 
     # clean (fail if fails):
-    g = clean(g, _verbose=False)
+    # g = clean(g, _verbose=False)
     if not g:
         _print("Your merged graph does not pass clean().")
 
