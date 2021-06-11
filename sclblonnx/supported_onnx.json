@@ -49,6 +49,7 @@
     "Greater",
     "GreaterOrEqual",
     "Identity",
+    "InstanceNormalization",
     "If",
     "LeakyRelu",
     "Less",
