@@ -13,6 +13,7 @@ def merge(
         outputs: [],
         inputs: [],
         _verbose: bool=True,
+        _sclbl_check: bool=False,
         append_unique_string=""):
     """ merge merges two graphs.
 
@@ -50,10 +51,10 @@ def merge(
     if len(outputs) != len(inputs):
         _print("The number of outputs and inputs do not match.")
         return False
-    if not check(sg1, _verbose=False):
+    if not check(sg1, _verbose=False, _sclbl_check=_sclbl_check):
         _print("Graph sg1 does not pass check(). Please fix.")
         return False
-    if not check(sg2, _verbose=False):
+    if not check(sg2, _verbose=False, _sclbl_check=_sclbl_check):
         _print("Graph sg2 does not pass check(). Please fix.")
         return False
 
@@ -138,7 +139,7 @@ def merge(
         g.output.append(output)
 
     # check again (message if fails):
-    if not check(g, _verbose=False):
+    if not check(g, _verbose=False, _sclbl_check=_sclbl_check):
         _print("Your merged graph does not pass check(). Please inspect the returned graph.", "MSG", (not _verbose))
 
     # clean (fail if fails):
