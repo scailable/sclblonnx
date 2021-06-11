@@ -12,7 +12,8 @@ def merge(
         sg2: xpb2.GraphProto,
         outputs: [],
         inputs: [],
-        _verbose: bool=True):
+        _verbose: bool=True,
+        append_unique_string=""):
     """ merge merges two graphs.
 
     Given (sub)graphs sg1 and sg2, the merge function tries to paste the inputs of sg2 to the outputs
@@ -58,14 +59,14 @@ def merge(
 
     # Check the inputs and outputs more elaborately:
     sg1_out = _output_details(sg1)
-    if len(sg1_out) != len(outputs):
-        _print("The number of specified outputs does not match the number of outputs of sg1")
-        return False
+    #if len(sg1_out) != len(outputs):
+    #    _print("The number of specified outputs does not match the number of outputs of sg1")
+    #    return False
 
     sg2_in = _input_details(sg2)
-    if len(sg2_in) != len(inputs):
-        _print("The number of specified inputs does not match the number of inputs of sg2")
-        return False
+    #if len(sg2_in) != len(inputs):
+    #    _print("The number of specified inputs does not match the number of inputs of sg2")
+    #    return False
 
     for index, output in enumerate(outputs):
         o = sg1_out.get(output, False)
@@ -83,11 +84,20 @@ def merge(
 
     # 2: copy all initializers from sg2 to g
     for init in sg2.initializer:
+        updated_init = init
+        updated_init.name = init.name + append_unique_string
         g.initializer.append(init)
 
     # 3: Add all nodes to sg2 to g
     for node in sg2.node:
-        g.node.append(node)
+        # update node
+        updated_node = node
+        for idx,input in enumerate(node.input):
+            updated_node.input[idx] = input + append_unique_string
+        for idx,output in enumerate(node.output):
+            updated_node.output[idx] = output + append_unique_string
+        updated_node.name = node.name + append_unique_string
+        g.node.append(updated_node)
 
     # 4. For each node in g...
     try:
@@ -110,12 +120,21 @@ def merge(
         _print("Unable to merge graphs: "+str(e))
         return False
 
+    # Check for connection between SG1 and SG2
+    for node in g.node:
+        for sg2_input_index, sg2_input in enumerate(inputs):
+            if sg2_input + append_unique_string  in node.input:
+                print("Found node {} with input {}".format(node.name,sg2_input))
+                node.input[sg2_input_index] = outputs[inputs.index(sg2_input)]
+
+
     # Delete original outputs sg1:
     for output in outputs:
         g = delete_output(g, output)
 
     # Add outputs sg2 to the graph:
     for output in sg2.output:
+        output.name += append_unique_string
         g.output.append(output)
 
     # check again (message if fails):
