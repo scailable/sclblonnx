@@ -1,0 +1,30 @@
+	sclblonnx:Ú
+#
+x1_1
+x1_2sum_1	node_name"Add
+#
+x2_1
+x2_2sum_2	node_name"Add
+%
+sum_1
+sum_2sum_3	node_name"AddG1Z
+x1_1
+
+
+Z
+x1_2
+
+
+Z
+x2_1
+
+
+Z
+x2_2
+
+
+b
+sum_3
+
+
+B

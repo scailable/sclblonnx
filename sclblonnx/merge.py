@@ -71,7 +71,7 @@ def merge(
         o = sg1_out.get(output, False)
         i = sg2_in.get(inputs[index], False)
         if not o or not i:
-            _print("Your outputs or inputs lists contain names that are not foung in the graphs.")
+            _print("Your outputs or inputs lists contain names that are not found in the graphs.")
             return False
         if o != i:
             _print("Output "+output+" does not match Input "+inputs[index]+" type or dims.")
@@ -129,3 +129,11 @@ def merge(
 
     _print("Graphs successfully merged.", "MSG", (not _verbose))
     return g
+
+
+def join():
+    print("join")
+
+
+def split():
+    print("split")
