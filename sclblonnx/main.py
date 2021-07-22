@@ -8,6 +8,7 @@ from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
 from onnx import save as xsave
 from onnx import numpy_helper as xnp
+import onnx
 import sclblonnx._globals as glob
 from sclblonnx.utils import _print
 
@@ -64,6 +65,7 @@ def graph_to_file(
         graph: xpb2.GraphProto,
         filename: str,
         _producer: str = "sclblonnx",
+        onnx_opset_version = 12,
         **kwargs):
     """ graph_to_file stores an onnx graph to a .onnx file
 
@@ -73,7 +75,7 @@ def graph_to_file(
         graph: An onnx graph
         filename: The filename of the resulting file
         _producer: Optional string with producer name. Default 'sclblonnx'
-
+        onnx_opset_version: Optional version number for ONNX opset. Default 12
     Returns:
         True if successful, False otherwise.
     """
@@ -85,7 +87,12 @@ def graph_to_file(
         _print("Unable to save: Graph is not an ONNX graph")
 
     try:
-        mod = xhelp.make_model(graph, producer_name=_producer, **kwargs)
+        if not 'opset_imports' in kwargs:
+            op = onnx.OperatorSetIdProto()
+            op.version = onnx_opset_version
+            mod = xhelp.make_model(graph, producer_name=_producer, opset_imports=[op], **kwargs)
+        else:
+            mod = xhelp.make_model(graph, producer_name=_producer, **kwargs)
     except Exception as e:
         print("Unable to convert graph to model: " + str(e))
         return False
@@ -105,6 +112,7 @@ def run(
         inputs: {},
         outputs: [],
         _tmpfile: str = ".tmp.onnx",
+        onnx_opset_version = 12,
         **kwargs):
     """ run executes a give graph with the given input and returns the output
 
@@ -113,12 +121,13 @@ def run(
         inputs: an object with the named inputs; please check the data types
         outputs: list of named outputs
         _tmpfile: String the temporary filename for the onnx file to run.
-
+        onnx_opset_version: Optional version number for ONNX opset. Default 12
+        
     Returns:
         The result (or False if it fails somewhere)
         """
 
-    store = graph_to_file(graph, _tmpfile)
+    store = graph_to_file(graph, _tmpfile, onnx_opset_version=onnx_opset_version)
     if not store:
         _print("Unable to store model for evaluation.")
         return False

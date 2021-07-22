@@ -1,6 +1,7 @@
 import onnxoptimizer
 from onnx import __version__ as xversion
 from onnx import checker
+import onnx
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
 from onnxsim import simplify
@@ -41,7 +42,12 @@ def clean(
         The cleaned ONNX graph, or the old graph if an error occurs.
     """
     try:
-        mod = xhelp.make_model(graph, producer_name=_producer)
+        if not 'opset_imports' in kwargs:
+            op = onnx.OperatorSetIdProto()
+            op.version = 12
+            mod = xhelp.make_model(graph, producer_name=_producer, opset_imports=[op], **kwargs)
+        else:
+            mod = xhelp.make_model(graph, producer_name=_producer, **kwargs)
     except Exception as e:
         _print("Unable to create the model: " + str(e))
         return graph
@@ -105,13 +111,18 @@ def check(
 
     # Convert to model:
     try:
-        mod = xhelp.make_model(graph, producer_name=_producer, **kwargs)
+        if not 'opset_imports' in kwargs:
+            op = onnx.OperatorSetIdProto()
+            op.version = 12
+            mod = xhelp.make_model(graph, producer_name=_producer, opset_imports=[op], **kwargs)
+        else:
+            mod = xhelp.make_model(graph, producer_name=_producer, **kwargs)
     except Exception as e:
         _print("Unable to create the model: " + str(e))
         return False
 
     # Standard ONNX checking:
-    if _onnx_check:
+    if _onnx_check and False:
         try:
             checker.check_model(mod, **kwargs)
         except Exception as e:
