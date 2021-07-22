@@ -240,23 +240,21 @@ def merge(sg1: xpb2.GraphProto,
 # test_merge()
 
 g1 = empty_graph("G1")
-n1 = node('Add', inputs=['x1_1', 'x1_2'], outputs=['sum_1'], name="node_name")
+n1 = node('Add', inputs=['x1_1', 'x1_2'], outputs=['sum_1'], name="n1")
 g1 = add_input(g1, 'x1_1', "FLOAT", [1])
 g1 = add_input(g1, 'x1_2', "FLOAT", [1])
 g1 = add_output(g1, 'sum_1', "FLOAT", [1])
 g1 = add_node(g1, n1)
 
-
-
 g2 = empty_graph("G2")
-n2 = node('Add', inputs=['x2_1', 'x2_2'], outputs=['sum_2'], name="node_name")
+n2 = node('Add', inputs=['x2_1', 'x2_2'], outputs=['sum_2'], name="n2")
 g2 = add_input(g2, 'x2_1', "FLOAT", [1])
 g2 = add_input(g2, 'x2_2', "FLOAT", [1])
 g2 = add_output(g2, 'sum_2', "FLOAT", [1])
 g2 = add_node(g2, n2)
 
 g3 = empty_graph("G3")
-n3 = node('Add', inputs=['x3_1', 'x3_2'], outputs=['sum_3'], name="node_name")
+n3 = node('Add', inputs=['x3_1', 'x3_2'], outputs=['sum_3'], name="n3")
 g3 = add_input(g3, 'x3_1', "FLOAT", [1])
 g3 = add_input(g3, 'x3_2', "FLOAT", [1])
 g3 = add_output(g3, 'sum_3', "FLOAT", [1])
@@ -267,18 +265,48 @@ def join(pg1, pg2, cg, pg1_match=[], pg2_match=[], complete=False, **kwargs):
     """
     Join takes two parents and merges them with a child
     """
-
-
     io_match = pg1_match
     io_match.extend(pg2_match)
-    print(io_match)
-    g1 = concat(pg1, pg2, rename_nodes=False, complete=complete, **kwargs)  # Nog iets slim met de io_match pairs...
+    g1 = concat(pg1, pg2, rename_nodes=False, complete=complete, **kwargs)
     g = concat(g1, cg, rename_nodes=False, io_match=io_match, complete=complete, **kwargs)
-
     return g
 
 
-g = join(g1, g2, g3, [("sum_1", "x3_1")], [("sum_2", "x3_2")])
-display(g)
+#g = join(g1, g2, g3, [("sum_1", "x3_1")], [("sum_2", "x3_2")])
+# display(g)
 
-# def split...
+
+def split(pg, cg1, cg2, cg1_match=[], cg2_match=[], complete=False, **kwargs):
+
+    print("split...")
+    g1 = concat(pg, cg1, rename_nodes=False, io_match=cg1_match, complete=complete, **kwargs)
+    g = concat(g1, cg2, rename_nodes=False, io_match=cg2_match, complete=complete, **kwargs)
+    return g
+
+
+
+g = split(g1, g2, g3, cg1_match=[("sum_1", "x2_2")], cg2_match=[("sum_1", "x3_1")])
+display(g)
+exit()
+
+# Little check for unkown input size:
+
+
+g1 = empty_graph("G1")
+n1 = node('Add', inputs=['x1_1', 'x1_2'], outputs=['sum_1'], name="node_name")
+g1 = add_input(g1, 'x1_1', "FLOAT", [])
+g1 = add_input(g1, 'x1_2', "FLOAT", [1])
+g1 = add_output(g1, 'sum_1', "FLOAT", [1])
+g1 = add_node(g1, n1)
+check(g1)
+display(g1)
+
+# Chec stuff...
+for inputs in g1.input:
+    if not inputs.type.tensor_type.shape.dim:
+        print("No dims...")
+    for elem in inputs.type.tensor_type.shape.dim:
+        print("Dim value: " + str(elem.dim_value))
+        if elem.dim_value == 0 or elem.dim_value == "":
+            print("Dynamic input size detected....")
+
