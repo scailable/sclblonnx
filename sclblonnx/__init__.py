@@ -49,7 +49,11 @@ from .output import \
     delete_output
 
 from .merge import \
-    merge
+    merge, \
+    join, \
+    split, \
+    concat, \
+    postfix_names
 
 
 
