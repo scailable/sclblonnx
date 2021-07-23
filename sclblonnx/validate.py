@@ -130,6 +130,10 @@ def check(
             return False
 
     if _sclbl_check:
+
+        # User feedback
+        _print("Running Scailable specific checks for WASM conversion. \nUse _sclbl_check=False to turn off", "MSG", (not _verbose))
+
         # input / output checking:
         if not graph.input:
             _print("This graph does not contain any inputs.")
@@ -187,11 +191,18 @@ def check(
             op = n.op_type
             if op not in glob.ONNX_VERSION_INFO['operators']:
                 not_supported.append(op)
-                # todo: Add additional type checks...
-
         if not_supported:
             _print("The operator(s) {} are currently not supported.".format(not_supported))
             return False
+
+        # Check dynamic
+        for inputs in graph.input:
+            if not inputs.type.tensor_type.shape.dim:
+                _print("Your graph contains dynamically sized inputs, this is currently not supported.")
+                return False
+            for elem in inputs.type.tensor_type.shape.dim:
+                if elem.dim_value == 0 or elem.dim_value == "":
+                    _print("Your graph contains dynamically size inputs, this is currently not supported.")
 
     if not _sclbl_check and not _onnx_check:
         _print("Set _sclbl_check or _onnx_check to True to run any checks.")

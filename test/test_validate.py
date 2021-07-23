@@ -14,20 +14,33 @@ def test_clean():
 
 
 def test_check():
+
+    # Invalid, no input/output:
     g = empty_graph()
     n1 = node('Add', inputs=['x1', 'x2'], outputs=['sum'])
     g = add_node(g, n1)
     assert not check(g), "Graph is not complete."
 
+    # Valid graph
     g = add_input(g, 'x1', "FLOAT", [1])
     g = add_input(g, 'x2', "FLOAT", [1])
     g = add_output(g, 'sum', "FLOAT", [1])
     assert check(g), "Graph should pass checks."
 
+    # Invalid: None operator:
     g = empty_graph()
     n1 = node('None', inputs=['x1', 'x2'], outputs=['sum'])
     g = add_node(g, n1)
     g = add_input(g, 'x1', "FLOAT", [1])
+    g = add_input(g, 'x2', "FLOAT", [1])
+    g = add_output(g, 'sum', "FLOAT", [1])
+    assert not check(g), "Graph should not pass checks."
+
+    # Invalid: Dynamic size input
+    g = empty_graph()
+    n1 = node('Add', inputs=['x1', 'x2'], outputs=['sum'])
+    g = add_node(g, n1)
+    g = add_input(g, 'x1', "FLOAT", [])
     g = add_input(g, 'x2', "FLOAT", [1])
     g = add_output(g, 'sum', "FLOAT", [1])
     assert not check(g), "Graph should not pass checks."
