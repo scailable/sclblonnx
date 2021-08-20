@@ -219,7 +219,8 @@ def concat(
         rename_io: bool = False,
         edge_match: [] = None,
         rename_edges: bool = False,
-        _verbose: bool = False,
+        rename_init: bool = False,
+        _verbose: bool = True,
         **kwargs):
     """
     concat concatenates two graphs.
@@ -300,6 +301,11 @@ def concat(
         _print("Renaming edges.", "MSG", (not _verbose))
         sg1 = postfix_names(sg1, "_sg1", "edge")
         sg2 = postfix_names(sg2, "_sg2", "edge")
+
+    if rename_init:
+        _print("Renaming init.", "MSG", (not _verbose))
+        sg1 = postfix_names(sg1, "_sg1", "init")
+        sg2 = postfix_names(sg2, "_sg2", "init")
 
     # Paste graphs together:
     _print("Pasting graphs.", "MSG", (not _verbose))
