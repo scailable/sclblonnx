@@ -86,7 +86,7 @@ def check(
         graph: xpb2.GraphProto,
         _producer: str = "sclblonnx",
         _onnx_check: bool = True,
-        _sclbl_check: bool = True,
+        _sclbl_check: bool = False,
         _verbose: bool = True,
         **kwargs):
     """ check whether or not an existing graph can be converted using the Scailable platform
@@ -97,7 +97,7 @@ def check(
         graph: an ONNX graph
         _producer: String optional
         _onnx_check: Bool, default True. Run ONNX checker.check().
-        _sclbl_check: Bool, default True.  Run Scailable checks.
+        _sclbl_check: Bool, default False.  Run Scailable toolchain support checks.
         _verbose: Print user feedback; default True (note, errors are always printed).
         **kwargs
 
