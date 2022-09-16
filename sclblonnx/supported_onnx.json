@@ -71,6 +71,7 @@
     "Mul",
     "Neg",
     "Not",
+    "NonMaxSuppression",
     "Or",
     "Pad",
     "Pow",
