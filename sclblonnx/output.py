@@ -93,6 +93,11 @@ def rename_output(graph, current_name, new_name):
             if name == current_name:
                 node.output[index] = new_name
 
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == current_name:
+                node.input[index] = new_name
+
     return graph
 
 
