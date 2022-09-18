@@ -38,6 +38,7 @@
     "Cos",
     "Cosh",
     "CumSum",
+    "DequantizeLinear",
     "Div",
     "Dropout",
     "DynamicQuantizeLinear",
