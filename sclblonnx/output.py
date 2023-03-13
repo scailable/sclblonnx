@@ -1,6 +1,5 @@
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
-
 from sclblonnx.utils import _parse_element, _value, _data_type, _print
 
 
@@ -98,6 +97,305 @@ def rename_output(graph, current_name, new_name):
             if name == current_name:
                 node.input[index] = new_name
 
+    return graph
+
+
+def rename_bbox_output(graph, bboxes_output_name, format, class_list):
+    """ Rename a bbox output of a graph
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        bboxes_output_name: String, the current output name of bounding boxes.
+        format: Format of output, choose among :
+            "xy" if (x1, y1, x2, y2)
+            "xyc" if (x1, y1, x2, y2, class)
+            "xysc" if (x1, y1, x2, y2, score, class)
+        class_list: List of classes.
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = ""
+    if format == "xy":
+        new_name = "bboxes-format:xyxy;"
+    elif format == "xyc":
+        new_name = "bboxes-format:xyxyc;"
+    elif format == "xysc":
+        new_name = "bboxes-format:xyxysc;"
+    else:
+        print("Format input is incorrect, it must be 'xy', 'xyc' or 'xysc'")
+        return False
+    for index, name in enumerate(class_list):
+        new_name = new_name + str(index) + ':' + name + ";"
+    new_name =  new_name[0:-1]
+
+    for output in graph.output:
+        if output.name == bboxes_output_name:
+            output.name =  new_name
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == bboxes_output_name:
+                node.output[index] = new_name
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == bboxes_output_name:
+                node.input[index] = new_name
+        return graph
+
+
+def rename_barcode_output(graph, barcode_output_name):
+    """ Rename a barcode bbox output of a graph
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        barcode_output_name: String, the current name of bounding-boxes output for barcodes
+
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    for output in graph.output:
+        if output.name == barcode_output_name:
+            output.name =  "barcode_bboxes-format:xyxy"
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == barcode_output_name:
+                node.output[index] = "barcode_bboxes-format:xyxy"
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == barcode_output_name:
+                node.input[index] = "barcode_bboxes-format:xyxy"
+    return graph
+
+
+def rename_licenseplate_output(graph, licenseplate_output_name, format):
+    """ Rename a licenseplate bbox output of a graph
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        licenseplate_output_name: String, the current output name of licenseplate bounding boxes.
+        format: Format of output, choose among :
+            "xy" if (x1, y1, x2, y2)
+            "xyxyxsxyxyxyxy" if (x1, y1, x2, y2, score, ... landmark coordinates)
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = ""
+    if format == "xy":
+        new_name = "licenseplate_bboxes-format:xyxy"
+    elif format == "xys":
+        new_name = "licenseplate_bboxes-format:xyxyxsxyxyxyxy"
+    else:
+        print("Format input is incorrect, it must be 'xy' or 'xys'")
+        return False
+
+    for output in graph.output:
+        if output.name == licenseplate_output_name:
+            output.name =  new_name
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == licenseplate_output_name:
+                node.output[index] = new_name
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == licenseplate_output_name:
+                node.input[index] = new_name
+    return graph
+
+
+def rename_class_probabilities_output(graph, output_name, class_list):
+    """ Rename the output of a model that generates probabilities per class
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        output_name: String, the current output name of the graph
+        class_list: List of classes.
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = "scores-"
+    for index, name in enumerate(class_list):
+        new_name = new_name + str(index) + ':' + name + ";"
+    new_name =  new_name[0:-1]
+
+    for output in graph.output:
+        if output.name == output_name:
+            output.name =  new_name
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == output_name:
+                node.output[index] = new_name
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == output_name:
+                node.input[index] = new_name
+    return graph
+
+
+def rename_object_count_output(graph, output_name, class_list):
+    """ Rename the output of a model that generates number of objects per class
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        output_name: String, the current output name of the graph
+        class_list: List of classes.
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = "counts-"
+    for index, name in enumerate(class_list):
+        new_name = new_name + str(index) + ':' + name + ";"
+    new_name =  new_name[0:-1]
+
+    for output in graph.output:
+        if output.name == output_name:
+            output.name =  new_name
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == output_name:
+                node.output[index] = new_name
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == output_name:
+                node.input[index] = new_name
+    return graph
+
+
+def rename_alarm_output(graph, output_name, class_list):
+    """ Rename the output of a model that generates an alarm based
+    on number of objects per class
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        output_name: String, the current output name of the graph
+        class_list: List of classes.
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = "alarm-"
+    for index, name in enumerate(class_list):
+        new_name = new_name + str(index) + ':' + name + ";"
+    new_name =  new_name[0:-1]
+
+    for output in graph.output:
+        if output.name == output_name:
+            output.name =  new_name
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == output_name:
+                node.output[index] = new_name
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == output_name:
+                node.input[index] = new_name
+    return graph
+
+
+def rename_linecrossing_bboxes_output(graph, output_name):
+    """ Rename the output of a model to be post-processed
+    using the line-crossing counter
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        output_name: String, the current output name of the graph
+    Returns:
+        The changed graph.
+    """
+
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = "linecrossing_bboxes-format:xyxysc"
+
+    for output in graph.output:
+        if output.name == output_name:
+            output.name =  new_name
+            found = True
+    if not found:
+        _print("Unable to found the output by name.")
+        return False
+
+    for node in graph.node:
+        for index, name in enumerate(node.output):
+            if name == output_name:
+                node.output[index] = new_name
+
+        # Handle the case when the output is fed to another node
+        for index, name in enumerate(node.input):
+            if name == output_name:
+                node.input[index] = new_name
     return graph
 
 

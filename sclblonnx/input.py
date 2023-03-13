@@ -1,7 +1,8 @@
 from onnx import helper as xhelp
 from onnx import onnx_ml_pb2 as xpb2
-from sclblonnx.utils import _value, _data_type, _parse_element, _print
 
+from sclblonnx.utils import _value, _data_type, _parse_element, _print
+import onnx
 
 # list_inputs lists all inputs of a graph
 def list_inputs(graph: xpb2.GraphProto):
@@ -93,6 +94,138 @@ def rename_input(graph, current_name, new_name):
             if name == current_name:
                 node.input[index] = new_name
 
+    return graph
+
+
+# rename_input_image renames an image input
+def rename_input_image(graph, image_input_name):
+    """ Rename an image input
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        image_input_name: String, the current image input name.
+
+    Returns:
+        The changed graph.
+    """
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    for input in graph.input:
+        if input.name == image_input_name:
+            input.name = "image-"
+            found = True
+    if not found:
+        _print("Unable to find the input to rename.")
+        return False
+
+    # And rename it in every nodes that takes this as input:
+    for node in graph.node:
+        for index, name in enumerate(node.input):
+            if name == image_input_name:
+                node.input[index] = "image-"
+    return graph
+
+# rename_input_image renames a binary mask input
+def rename_input_mask(graph, mask_input_name):
+    """ Rename a binary mask input
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        mask_input_name: String, the current mask input name.
+
+    Returns:
+        The changed graph.
+    """
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    for input in graph.input:
+        if input.name == mask_input_name:
+            input.name = "mask-"
+            found = True
+    if not found:
+        _print("Unable to find the input to rename.")
+        return False
+
+    # And rename it in every nodes that takes this as input:
+    for node in graph.node:
+        for index, name in enumerate(node.input):
+            if name == mask_input_name:
+                node.input[index] = "mask-"
+    return graph
+
+
+# rename_input_image renames a threshold input
+def rename_input_threshold(graph, threshold_input_name, class_list):
+    """ Enable a model to raise an alarm when number of
+    occurrences of an object is above the threshold
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        threshold_input_name: String, the current input name of threshold.
+        class_list: List of classes.
+
+    Returns:
+        The changed graph.
+    """
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    new_name = "thresholds-"
+    for index, name in enumerate(class_list):
+        new_name = new_name + str(index) + ':' + name + ";"
+    new_name =  new_name[0:-1]
+
+    for input in graph.input:
+        if input.name == threshold_input_name:
+            input.name = new_name
+            found = True
+    if not found:
+        _print("Unable to find the input to rename.")
+        return False
+
+    # And rename it in every nodes that takes this as input:
+    for node in graph.node:
+        for index, name in enumerate(node.input):
+            if name == threshold_input_name:
+                node.input[index] = new_name
+    return graph
+
+def rename_input_sensor(graph, sensor_input_name):
+    """ Rename a sensor input
+
+    Args:
+        graph: A graph, onnx.onnx_ml_pb2.GraphProto.
+        current_name: String, the current input name.
+
+    Returns:
+        The changed graph.
+    """
+    if type(graph) is not xpb2.GraphProto:
+        _print("graph is not a valid ONNX graph.")
+        return False
+
+    found = False
+    for input in graph.input:
+        if input.name == sensor_input_name:
+            input.name = "sensor-"
+            found = True
+    if not found:
+        _print("Unable to find the input to rename.")
+        return False
+
+    # And rename it in every nodes that takes this as input:
+    for node in graph.node:
+        for index, name in enumerate(node.input):
+            if name == sensor_input_name:
+                node.input[index] = "sensor-"
     return graph
 
 
