@@ -25,7 +25,7 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'onnxruntime',
-        'onnx>=1.7.0,<=1.12.0',
+        'onnx>=1.7.0,<=1.14.1',
         'requests',
         'onnxoptimizer',
         'onnx-simplifier',
