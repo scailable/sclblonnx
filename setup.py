@@ -28,7 +28,7 @@ setuptools.setup(
         'onnx>=1.7.0,<=1.13.1',
         'requests',
         'onnxoptimizer',
-        'onnx-simplifier',
+        'onnxsim',
         'packaging'
       ],
     python_requires='>=3.7',
