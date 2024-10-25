@@ -1,11 +1,11 @@
 {
   "onnx_version" : {
     "version_min" : "1.7.0",
-    "version_max" : "1.13.1",
+    "version_max" : "1.17.0",
     "ir_version_min" : 7,
-    "ir_version_max" : 8,
+    "ir_version_max" : 10,
     "opset_min" : 12,
-    "opset_max" : 13
+    "opset_max" : 18
   },
   "operators" : [
     "Abs",
